@@ -1,0 +1,6 @@
+{
+  "name": "Prop Desk: Quant Market Making & Trading Simulator",
+  "description": "An authentic prop trading desk simulation inspired by Crude Desk's clean aesthetic. Trade like a quant at Jane Street or Optiver: quote two-sided markets, manage inventory skew, dodge toxic order flow, exploit ETF arbitrage, and pass prop firm challenge risk limits.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
