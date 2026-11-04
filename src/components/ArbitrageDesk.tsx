@@ -5,15 +5,16 @@ import { sounds } from '../services/soundEffects';
 
 interface ArbitrageDeskProps {
   book: AssetBook;
+  isUnlocked: boolean;
   onExecuteArb: (type: 'SELL_ETF_BUY_BASKET' | 'BUY_ETF_SELL_BASKET', edgePerShare: number) => void;
 }
 
-export const ArbitrageDesk: React.FC<ArbitrageDeskProps> = ({ book, onExecuteArb }) => {
+export const ArbitrageDesk: React.FC<ArbitrageDeskProps> = ({ book, isUnlocked, onExecuteArb }) => {
   const etfPrice = book.fairValue;
   const basketNav = book.syntheticBasketFair;
   const discrepancy = Number((etfPrice - basketNav).toFixed(2));
   const absDiff = Math.abs(discrepancy);
-  const isArbOpen = absDiff >= 0.35;
+  const isArbOpen = isUnlocked && absDiff >= 0.35;
 
   return (
     <div className="flex flex-col h-full bg-white border-2 border-neutral-900 shadow-[4px_4px_0px_#111111] overflow-hidden text-neutral-900">
@@ -77,10 +78,21 @@ export const ArbitrageDesk: React.FC<ArbitrageDeskProps> = ({ book, onExecuteArb
         <div className="border-2 border-neutral-900 bg-neutral-50 p-3 space-y-2">
           <div className="text-xs font-bold text-neutral-700 flex justify-between">
             <span>ARBITRAGE STRATEGY:</span>
-            <span className="font-mono text-[11px] text-neutral-500">LOT SIZE: 50 LOTS (5,000 SHARES)</span>
+            <span className="font-mono text-[11px] text-neutral-500">
+              {isUnlocked ? 'LOT SIZE: 50 LOTS (5,000 SHARES)' : 'STAGE LOCKED'}
+            </span>
           </div>
 
-          {isArbOpen ? (
+          {!isUnlocked ? (
+            <div className="border-2 border-neutral-900 bg-neutral-100 p-3 text-center space-y-1">
+              <span className="font-black text-xs uppercase tracking-wider text-neutral-700 block">
+                🔒 UNLOCKS IN STAGE 3 · ETF ARBITRAGE DESK
+              </span>
+              <p className="text-[11px] text-neutral-500 font-medium">
+                Focus on Stage 1 & 2 market making and inventory control before executing multi-leg basket arbitrage.
+              </p>
+            </div>
+          ) : isArbOpen ? (
             discrepancy > 0 ? (
               <button
                 onClick={() => {

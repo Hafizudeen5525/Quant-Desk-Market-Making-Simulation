@@ -66,39 +66,80 @@ export const MarketMakerDesk: React.FC<MarketMakerDeskProps> = ({
             </span>
           </div>
 
-          {/* Central Fair Value */}
-          <div className="border-2 border-neutral-900 bg-neutral-100 p-2.5 flex flex-col justify-between text-center">
+        {/* Central Fair Value & Interactive Tick Chart */}
+        <div className="border-2 border-neutral-900 bg-neutral-100 p-2.5 flex flex-col justify-between text-center relative overflow-hidden">
+          <div className="flex items-center justify-between">
             <span className="text-[10px] font-black uppercase text-neutral-600 tracking-wider">
               ESTIMATED FAIR VALUE E[V]
             </span>
-            <div className="my-1">
-              <span className="font-mono text-2xl font-black text-neutral-900">
-                ${book.fairValue.toFixed(2)}
-              </span>
-            </div>
             <span className="text-[10px] font-mono text-[#4A8ECB] font-bold">
-              SPREAD: ${(book.myAsk - book.myBid).toFixed(2)} ({spreadSetting})
+              SPREAD: ${(book.myAsk - book.myBid).toFixed(2)}
             </span>
           </div>
 
-          {/* My Ask */}
-          <div className="border-2 border-neutral-900 bg-neutral-50 p-2.5 flex flex-col justify-between text-right">
-            <div className="flex items-center justify-between text-xs font-bold text-neutral-600">
-              <span className="text-[10px] bg-rose-100 text-rose-800 px-1 py-0.2 border border-rose-700 font-mono">
-                WE SELL HERE
-              </span>
-              <span className="uppercase">MY ASK (SELL)</span>
-            </div>
-            <div className="my-1">
-              <span className="font-mono text-2xl font-black text-rose-700">
-                ${book.myAsk.toFixed(2)}
-              </span>
-            </div>
-            <span className="text-[10px] text-neutral-500 font-mono">
-              Premium to Fair: +${(book.myAsk - book.fairValue).toFixed(2)}
+          <div className="my-1 flex items-baseline justify-center gap-2">
+            <span className="font-mono text-2xl font-black text-neutral-900">
+              ${book.fairValue.toFixed(2)}
+            </span>
+            <span className={`text-xs font-mono font-bold ${book.change24h >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+              {book.change24h >= 0 ? '+' : ''}${book.change24h.toFixed(2)}
             </span>
           </div>
+
+          {/* Mini SVG Tick Chart */}
+          <div className="w-full h-10 bg-white border border-neutral-300 relative overflow-hidden my-1">
+            {book.history.length > 1 && (() => {
+              const minVal = Math.min(...book.history) - 0.2;
+              const maxVal = Math.max(...book.history) + 0.2;
+              const range = maxVal - minVal || 1;
+              const svgW = 320;
+              const svgH = 40;
+              const pts = book.history
+                .map((val, idx) => {
+                  const x = (idx / (book.history.length - 1)) * (svgW - 8) + 4;
+                  const y = svgH - 4 - ((val - minVal) / range) * (svgH - 8);
+                  return `${x.toFixed(1)},${y.toFixed(1)}`;
+                })
+                .join(' ');
+
+              return (
+                <svg viewBox={`0 0 ${svgW} ${svgH}`} className="w-full h-full" preserveAspectRatio="none">
+                  <polyline
+                    fill="none"
+                    stroke="#111111"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    points={pts}
+                  />
+                </svg>
+              );
+            })()}
+          </div>
+
+          <span className="text-[10px] font-mono text-neutral-500 font-bold">
+            Corridor: [${book.myBid.toFixed(2)} ↔ ${book.myAsk.toFixed(2)}]
+          </span>
         </div>
+
+        {/* My Ask */}
+        <div className="border-2 border-neutral-900 bg-neutral-50 p-2.5 flex flex-col justify-between text-right">
+          <div className="flex items-center justify-between text-xs font-bold text-neutral-600">
+            <span className="text-[10px] bg-rose-100 text-rose-800 px-1 py-0.2 border border-rose-700 font-mono">
+              WE SELL HERE
+            </span>
+            <span className="uppercase">MY ASK (SELL)</span>
+          </div>
+          <div className="my-1">
+            <span className="font-mono text-2xl font-black text-rose-700">
+              ${book.myAsk.toFixed(2)}
+            </span>
+          </div>
+          <span className="text-[10px] text-neutral-500 font-mono">
+            Premium to Fair: +${(book.myAsk - book.fairValue).toFixed(2)}
+          </span>
+        </div>
+      </div>
 
         {/* Quoting Controls: Spread Width & Inventory Skewing */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 text-xs">

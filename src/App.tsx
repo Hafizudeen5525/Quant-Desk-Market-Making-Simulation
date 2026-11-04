@@ -84,6 +84,7 @@ export default function App() {
     ...INITIAL_ASSET_BOOKS[currentChallenge.asset],
     maxInventory: currentChallenge.maxInventoryLimit,
   }));
+  const [inventoryCostBasis, setInventoryCostBasis] = useState<number>(book.fairValue);
   const [spreadSetting, setSpreadSetting] = useState<QuotingSpread>('MEDIUM');
   const [skewSetting, setSkewSetting] = useState<InventorySkew>('NEUTRAL');
 
@@ -125,6 +126,7 @@ export default function App() {
         spread: quotes.spread,
         inventory: 0,
       });
+      setInventoryCostBasis(initialBookData.fairValue);
 
       setStats({
         accountBalance: ch.startingCapital,
@@ -178,6 +180,22 @@ export default function App() {
         const newBasketFair = Number((newFair + arbOffset).toFixed(2));
 
         const quotes = recalculateQuotes(newFair, spreadSetting, skewSetting);
+
+        // Mark open inventory to market on price movement
+        if (prev.inventory !== 0) {
+          const inventoryDelta = prev.inventory * 100 * (newFair - prev.fairValue);
+          setStats((s) => {
+            const updatedDaily = s.dailyPnL + inventoryDelta;
+            const currentDrawdown = Math.max(0, -updatedDaily);
+            return {
+              ...s,
+              dailyPnL: updatedDaily,
+              accountBalance: s.startingCapital + updatedDaily,
+              drawdown: currentDrawdown,
+              maxDrawdownReached: Math.max(s.maxDrawdownReached, currentDrawdown),
+            };
+          });
+        }
 
         return {
           ...prev,
@@ -327,9 +345,32 @@ export default function App() {
       setIsDayPassed(true);
       setIsDayResultsOpen(true);
       setStats((s) => ({ ...s, levelPassed: true }));
+      recordVictory(stats.dailyPnL, stageNumber);
       return;
     }
-  }, [stats.dailyPnL, currentChallenge, isPlaying]);
+  }, [stats.dailyPnL, currentChallenge, isPlaying, stageNumber]);
+
+  // Record completed stage evaluation to leaderboard
+  const recordVictory = (pnl: number, stage: number) => {
+    try {
+      const existing = JSON.parse(localStorage.getItem('propdesk_leaderboard') || '[]');
+      const accuracy = Math.round(
+        (stats.ordersFilled / Math.max(1, stats.ordersFilled + stats.toxicHitsSuffered)) * 100
+      );
+      const newEntry = {
+        name: 'You (Quant Trader)',
+        firm: 'Prop Evaluation',
+        pnl: Math.round(pnl),
+        stageReached: stage,
+        accuracy,
+        date: new Date().toISOString().split('T')[0],
+      };
+      const combined = [newEntry, ...existing.filter((e: any) => e.name !== 'You (Quant Trader)' || e.pnl < newEntry.pnl)]
+        .sort((a: any, b: any) => b.pnl - a.pnl)
+        .slice(0, 10);
+      localStorage.setItem('propdesk_leaderboard', JSON.stringify(combined));
+    } catch {}
+  };
 
   // Handle Filling Client Order
   const handleFillOrder = (orderId: string) => {
@@ -371,9 +412,25 @@ export default function App() {
     // Update inventory:
     // If client buys, we sell to them -> inventory decreases
     // If client sells, we buy from them -> inventory increases
-    const newInventory = isClientBuying
-      ? book.inventory - order.volume
-      : book.inventory + order.volume;
+    const volumeChange = isClientBuying ? -order.volume : order.volume;
+    const newInventory = book.inventory + volumeChange;
+    const execPrice = isClientBuying ? book.myAsk : book.myBid;
+
+    // Update weighted inventory basis
+    if (book.inventory === 0 && newInventory !== 0) {
+      setInventoryCostBasis(execPrice);
+    } else if (
+      (book.inventory > 0 && volumeChange > 0) ||
+      (book.inventory < 0 && volumeChange < 0)
+    ) {
+      const totalVolume = Math.abs(newInventory);
+      const updatedBasis =
+        (Math.abs(book.inventory) * inventoryCostBasis + Math.abs(volumeChange) * execPrice) /
+        totalVolume;
+      setInventoryCostBasis(Number(updatedBasis.toFixed(2)));
+    } else if (newInventory === 0) {
+      setInventoryCostBasis(book.fairValue);
+    }
 
     // Check if new inventory exceeds max limit
     if (Math.abs(newInventory) > book.maxInventory) {
@@ -422,9 +479,11 @@ export default function App() {
       ...s,
       accountBalance: s.accountBalance - liquidationCost,
       dailyPnL: s.dailyPnL - liquidationCost,
+      realizedSpreadPnL: s.realizedSpreadPnL - liquidationCost,
     }));
 
     setBook((b) => ({ ...b, inventory: 0 }));
+    setInventoryCostBasis(book.fairValue);
   };
 
   // Execute ETF Basket Arbitrage
@@ -505,27 +564,48 @@ export default function App() {
     const passed = stats.dailyPnL >= currentChallenge.profitTarget && stats.strikes < 3;
     setIsDayPassed(passed);
     setIsDayResultsOpen(true);
-    if (passed) sounds.playCashRegister();
-    else sounds.playStrikeError();
+    if (passed) {
+      sounds.playCashRegister();
+      recordVictory(stats.dailyPnL, stageNumber);
+    } else {
+      sounds.playStrikeError();
+    }
   };
 
-  // Keyboard Shortcuts (B: Buy, S: Sell)
+  // Keyboard Shortcuts for full floor operations
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName)) return;
-      if (e.key === 'b' || e.key === 'B') {
+
+      const key = e.key.toLowerCase();
+      if (key === 'b') {
         if (currentMacroEvent && !currentMacroEvent.isTraded) {
           handleTradeMacro('BUY');
         }
-      } else if (e.key === 's' || e.key === 'S') {
+      } else if (key === 's') {
         if (currentMacroEvent && !currentMacroEvent.isTraded) {
           handleTradeMacro('SELL');
         }
+      } else if (key === '1') {
+        handleChangeSpread('TIGHT');
+      } else if (key === '2') {
+        handleChangeSpread('MEDIUM');
+      } else if (key === '3') {
+        handleChangeSpread('WIDE');
+      } else if (key === 'd') {
+        handleChangeSkew('SKEW_DOWN');
+      } else if (key === 'n') {
+        handleChangeSkew('NEUTRAL');
+      } else if (key === 'u') {
+        handleChangeSkew('SKEW_UP');
+      } else if (key === 'f' || e.code === 'Space') {
+        e.preventDefault();
+        handleFlattenInventory();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentMacroEvent]);
+  }, [currentMacroEvent, book.inventory, inventoryCostBasis, spreadSetting, skewSetting]);
 
   // Format Desk Time
   const deskHours = Math.floor(deskTimeSeconds / 3600);
@@ -577,12 +657,17 @@ export default function App() {
         {/* Right Column: Quantitative ETF Arbitrage & Macro Alpha (5 cols) */}
         <section className="lg:col-span-5 flex flex-col gap-4">
           <div className="flex-1 min-h-[280px]">
-            <ArbitrageDesk book={book} onExecuteArb={handleExecuteArb} />
+            <ArbitrageDesk
+              book={book}
+              isUnlocked={currentChallenge.unlockedFeatures.etfArbitrage}
+              onExecuteArb={handleExecuteArb}
+            />
           </div>
 
           <div className="flex-1 min-h-[260px]">
             <MacroAlphaPanel
               event={currentMacroEvent}
+              isUnlocked={currentChallenge.unlockedFeatures.macroAlpha}
               onTradeMacro={handleTradeMacro}
             />
           </div>
@@ -609,9 +694,15 @@ export default function App() {
           stats={stats}
           stageNumber={stageNumber}
           onNextStage={() => {
-            setStageNumber((prev) => (prev < 5 ? prev + 1 : 5));
+            setIsDayResultsOpen(false);
+            if (stageNumber < 5) {
+              setStageNumber((prev) => prev + 1);
+            } else {
+              setupStage(5);
+            }
           }}
           onRetryStage={() => {
+            setIsDayResultsOpen(false);
             setupStage(stageNumber);
           }}
         />

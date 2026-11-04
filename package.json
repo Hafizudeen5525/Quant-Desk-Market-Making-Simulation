@@ -1,7 +1,8 @@
 {
-  "name": "react-example",
-  "private": true,
-  "version": "0.0.0",
+  "name": "prop-desk-simulator",
+  "version": "1.0.0",
+  "description": "Quantitative Proprietary Trading & Market Making Terminal Simulator inspired by Jane Street & Optiver trading desks",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",

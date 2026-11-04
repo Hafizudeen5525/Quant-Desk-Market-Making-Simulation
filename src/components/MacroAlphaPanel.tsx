@@ -5,10 +5,11 @@ import { sounds } from '../services/soundEffects';
 
 interface MacroAlphaPanelProps {
   event: MacroNewsEvent | null;
+  isUnlocked: boolean;
   onTradeMacro: (direction: 'BUY' | 'SELL') => void;
 }
 
-export const MacroAlphaPanel: React.FC<MacroAlphaPanelProps> = ({ event, onTradeMacro }) => {
+export const MacroAlphaPanel: React.FC<MacroAlphaPanelProps> = ({ event, isUnlocked, onTradeMacro }) => {
   return (
     <div className="flex flex-col h-full bg-white border-2 border-neutral-900 shadow-[4px_4px_0px_#111111] overflow-hidden text-neutral-900">
       {/* Title */}
@@ -20,12 +21,21 @@ export const MacroAlphaPanel: React.FC<MacroAlphaPanelProps> = ({ event, onTrade
           </h3>
         </div>
         <span className="text-[10px] font-mono font-bold text-neutral-400">
-          SURPRISE DELTA
+          {isUnlocked ? 'SURPRISE DELTA' : 'LOCKED'}
         </span>
       </div>
 
       <div className="p-3.5 space-y-3 flex-1 flex flex-col justify-between">
-        {!event || event.isTraded ? (
+        {!isUnlocked ? (
+          <div className="border-2 border-neutral-900 bg-neutral-100 p-4 text-center space-y-1 my-auto">
+            <span className="font-black text-xs uppercase tracking-wider text-neutral-700 block">
+              🔒 UNLOCKS IN STAGE 4 · HIGH-SPEED MACRO ALPHA
+            </span>
+            <p className="text-[11px] text-neutral-500 font-medium">
+              Trade headline surprise deltas against Wall Street consensus prints under tight latency windows.
+            </p>
+          </div>
+        ) : !event || event.isTraded ? (
           <div className="border-2 border-dashed border-neutral-300 p-4 text-center text-xs font-bold text-neutral-400 flex flex-col items-center justify-center h-36">
             <Clock className="h-6 w-6 text-neutral-300 mb-1" />
             <span>Awaiting next macroeconomic economic print from terminal wire...</span>

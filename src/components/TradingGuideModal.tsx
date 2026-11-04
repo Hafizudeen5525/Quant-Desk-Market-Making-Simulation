@@ -8,7 +8,7 @@ interface TradingGuideModalProps {
 }
 
 export const TradingGuideModal: React.FC<TradingGuideModalProps> = ({ isOpen, onClose }) => {
-  const [activeTab, setActiveTab] = useState<'MM' | 'SKEW' | 'TOXIC' | 'ARB' | 'MACRO' | 'RULES'>('MM');
+  const [activeTab, setActiveTab] = useState<'MM' | 'SKEW' | 'TOXIC' | 'ARB' | 'MACRO' | 'RULES' | 'HOTKEYS'>('MM');
 
   if (!isOpen) return null;
 
@@ -43,6 +43,7 @@ export const TradingGuideModal: React.FC<TradingGuideModalProps> = ({ isOpen, on
             { id: 'ARB', label: '4. ETF Arbitrage' },
             { id: 'MACRO', label: '5. Macro Alpha' },
             { id: 'RULES', label: '6. Risk Rules' },
+            { id: 'HOTKEYS', label: '7. Hotkeys' },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -204,6 +205,50 @@ export const TradingGuideModal: React.FC<TradingGuideModalProps> = ({ isOpen, on
                   <p>
                     • <strong>3 Strikes Rule:</strong> 3 risk limit breaches result in immediate dismissal from the firm.
                   </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'HOTKEYS' && (
+            <div className="space-y-3">
+              <div className="border-2 border-neutral-900 bg-neutral-50 p-4">
+                <h3 className="text-sm font-black uppercase text-[#111111] mb-3">
+                  TRADING FLOOR KEYBOARD SHORTCUTS
+                </h3>
+                <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+                  <div className="border border-neutral-300 bg-white p-2 flex justify-between items-center">
+                    <span>Tight Spread:</span>
+                    <kbd className="border border-neutral-900 bg-neutral-100 px-2 py-0.5 font-bold">[1]</kbd>
+                  </div>
+                  <div className="border border-neutral-300 bg-white p-2 flex justify-between items-center">
+                    <span>Medium Spread:</span>
+                    <kbd className="border border-neutral-900 bg-neutral-100 px-2 py-0.5 font-bold">[2]</kbd>
+                  </div>
+                  <div className="border border-neutral-300 bg-white p-2 flex justify-between items-center">
+                    <span>Wide Spread:</span>
+                    <kbd className="border border-neutral-900 bg-neutral-100 px-2 py-0.5 font-bold">[3]</kbd>
+                  </div>
+                  <div className="border border-neutral-300 bg-white p-2 flex justify-between items-center">
+                    <span>Skew Quotes Down:</span>
+                    <kbd className="border border-neutral-900 bg-neutral-100 px-2 py-0.5 font-bold">[D]</kbd>
+                  </div>
+                  <div className="border border-neutral-300 bg-white p-2 flex justify-between items-center">
+                    <span>Neutral Quote Skew:</span>
+                    <kbd className="border border-neutral-900 bg-neutral-100 px-2 py-0.5 font-bold">[N]</kbd>
+                  </div>
+                  <div className="border border-neutral-300 bg-white p-2 flex justify-between items-center">
+                    <span>Skew Quotes Up:</span>
+                    <kbd className="border border-neutral-900 bg-neutral-100 px-2 py-0.5 font-bold">[U]</kbd>
+                  </div>
+                  <div className="border border-neutral-300 bg-white p-2 flex justify-between items-center">
+                    <span>Flatten Inventory:</span>
+                    <kbd className="border border-neutral-900 bg-neutral-100 px-2 py-0.5 font-bold">[F] / [Space]</kbd>
+                  </div>
+                  <div className="border border-neutral-300 bg-white p-2 flex justify-between items-center">
+                    <span>Trade Macro Alpha:</span>
+                    <kbd className="border border-neutral-900 bg-neutral-100 px-2 py-0.5 font-bold">[B] / [S]</kbd>
+                  </div>
                 </div>
               </div>
             </div>

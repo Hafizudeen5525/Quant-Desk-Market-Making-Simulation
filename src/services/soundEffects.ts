@@ -1,6 +1,6 @@
 /**
- * Procedural Web Audio Sound Engine for Crude Desk Terminal
- * Zero external audio files, 100% reliable in any browser.
+ * Procedural Web Audio Sound Engine for Prop Desk
+ * Zero external audio files, 100% reliable in any modern browser.
  */
 
 class SoundEngine {

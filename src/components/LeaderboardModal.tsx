@@ -32,6 +32,22 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({
   myScore,
   myPnL,
 }) => {
+  const [allEntries, setAllEntries] = React.useState<LeaderboardEntry[]>(PROP_LEADERBOARD_ENTRIES);
+
+  React.useEffect(() => {
+    if (!isOpen) return;
+    try {
+      const saved = localStorage.getItem('propdesk_leaderboard');
+      if (saved) {
+        const parsed: LeaderboardEntry[] = JSON.parse(saved);
+        const combined = [...parsed, ...PROP_LEADERBOARD_ENTRIES]
+          .sort((a, b) => b.pnl - a.pnl)
+          .slice(0, 8);
+        setAllEntries(combined);
+      }
+    } catch {}
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   return (
@@ -81,7 +97,7 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({
             <span className="text-[11px] font-black uppercase text-neutral-600 block mb-2 font-sans">
               Top Ranked Proprietary Market Makers:
             </span>
-            {PROP_LEADERBOARD_ENTRIES.map((entry, idx) => (
+            {allEntries.map((entry, idx) => (
               <div
                 key={idx}
                 className="flex items-center justify-between border-2 border-neutral-900 p-2.5 bg-white hover:bg-neutral-50 transition"
