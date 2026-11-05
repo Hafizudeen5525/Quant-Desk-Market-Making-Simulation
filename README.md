@@ -1,138 +1,133 @@
-# Prop Desk · Quantitative Market Making & Trading Simulator
+# Prop Desk
 
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)](https://www.typescriptlang.org/)
-[![React](https://img.shields.io/badge/React-19.x-61dafb.svg)](https://react.dev/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38bdf8.svg)](https://tailwindcss.com/)
-[![Vite](https://img.shields.io/badge/Vite-8.x-646cff.svg)](https://vitejs.dev/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+A browser-based market making and prop trading game inspired by Crude Desk.
 
-**Prop Desk** is a quantitative proprietary trading desk and market making simulator. Built with a high-contrast brutalist terminal aesthetic inspired by modern trading interfaces, it replicates the high-stakes decision-making, mental math, and risk discipline tested at firms such as **Jane Street, Optiver, Citadel Securities, and IMC**.
+Instead of oil shipments and tankers, this focuses on how electronic market makers and prop trading desks actually make money: quoting two-sided prices, managing inventory risk, avoiding toxic flow, and reacting to market-moving news.
 
 ---
 
-## ⚡ Overview & Core Gameplay Loop
+## What is this?
 
-Aspiring quantitative traders take the seat of a market maker managing a proprietary capital allocation across 5 escalating challenge stages. Your mandate is to capture spread edge and exploit statistical mispricings while obeying strict prop firm risk constraints:
+Most trading games let you buy low and sell high on a stock chart. That's not how market makers operate.
 
-1. **Two-Sided Market Making**: Continuously quote competitive `BID` and `ASK` prices around changing estimated Fair Value $E[V]$.
-2. **Inventory Skewing**: Dynamically bias your quotes to offload toxic inventory before market drift destroys your P&L.
-3. **Toxic Flow Defense**: Identify informed institutional sweeps vs uninformed retail flow to prevent severe adverse selection.
-4. **ETF Creation/Redemption Arbitrage**: Exploit statistical deviations between an ETF's market price and its synthetic basket Net Asset Value (NAV).
-5. **Macroeconomic Latency Alpha**: Rapidly interpret economic data releases (CPI, FOMC rate cuts, Non-Farm Payrolls) and trade the surprise factor before algorithms reprice the order book.
-6. **Prop Firm Risk Constraints**: Maintain capital above the **Maximum Daily Drawdown limit**, stay within position inventory limits, and avoid strikes from the risk manager.
+Market makers don't bet on whether the market goes up or down. They quote both a **Bid** (price to buy) and an **Ask** (price to sell) at the same time. If buyers and sellers trade against both sides, you pocket the spread.
 
----
+The catch is risk. If everyone is selling to you, you end up holding a huge long position. If the price drops, your profits disappear fast. On top of that, some traders know things before you do—if an institutional buyer hits your ask, the market usually rallies right through you.
 
-## 🧠 Quantitative Finance & Market Microstructure Concepts
-
-### 1. Market Making & Expected Value $E[V]$
-Market makers do not speculate on directional trends; they provide two-sided liquidity.
-- **Fair Value $E[V]$**: The consensus expected value of the asset based on the order book and external signals.
-- **My Bid (Buy)**: Quoted strictly *below* Fair Value:
-  $$\text{Bid} = E[V] - \frac{\text{Spread}}{2} + \delta_{\text{skew}}$$
-- **My Ask (Sell)**: Quoted strictly *above* Fair Value:
-  $$\text{Ask} = E[V] + \frac{\text{Spread}}{2} + \delta_{\text{skew}}$$
-When uninformed retail order flow hits your Ask (they buy from you) or your Bid (they sell to you), you capture the spread edge.
-
-### 2. Inventory Risk & Quote Skewing (Avellaneda-Stoikov Model)
-Holding non-zero inventory exposes the desk to directional market volatility:
-$$\Delta \Pi = q \cdot \Delta S$$
-Where $q$ is inventory volume and $\Delta S$ is the price shift.
-- **Long Inventory ($q > 0$)**: If you hold +30 contracts and the market falls $\$1.00$, you lose $\$3,000$. You must **`SKEW DOWN`** (lower both Bid and Ask). This discourages more sellers from hitting your Bid, while making your Ask highly attractive to buyers, offloading inventory back toward flat.
-- **Short Inventory ($q < 0$)**: You must **`SKEW UP`** (raise both Bid and Ask). Your higher Bid attracts sellers, allowing you to buy back contracts and cover short exposure.
-
-### 3. Adverse Selection & Toxic Flow (Glosten-Milgrom Model)
-Order flow is not homogeneous. Institutional funds and algorithmic traders possess latency or informational advantages:
-- Filling an **Informed / Toxic Order** triggers immediate adverse selection: the Fair Value jumps sharply against your fill, creating an instant mark-to-market loss.
-- Traders must detect toxic flow warnings and actively **`REJECT FLOW`** or widen their quoted spread.
-
-### 4. ETF Basket Creation & Redemption Arbitrage
-Authorized Participants (APs) keep ETF prices anchored to the Net Asset Value (NAV) of their underlying securities:
-- **ETF Premium ($P_{\text{ETF}} > \text{NAV}_{\text{Basket}}$)**: Sell the overpriced ETF in the market and buy the underlying basket of stocks. Deliver the basket to the ETF issuer to create new shares, capturing the spread.
-- **ETF Discount ($P_{\text{ETF}} < \text{NAV}_{\text{Basket}}$)**: Buy the underpriced ETF in the market and short the basket. Redeem the ETF shares for the underlying basket, locking in risk-free profit.
-
-### 5. Macroeconomic Surprise Factor $\Delta$
-Markets do not trade on the absolute economic print; they reprice based on the surprise relative to Wall Street consensus:
-$$\text{Surprise Delta} = \text{Actual} - \text{Consensus}$$
-- **Example**: US CPI prints **2.6%** vs **3.1% consensus** $\rightarrow$ lower inflation signals dovish Federal Reserve rate cuts $\rightarrow$ immediate bullish catalyst for tech equities.
-- Traders have a 4-second latency window before automated liquidity algorithms reprice the order book.
+This simulator puts you on the desk across 5 stages, starting with simple spreads and working up to ETF basket arbitrage and fast economic releases.
 
 ---
 
-## 🏆 Prop Firm Challenge Progression
+## How It Works
 
-| Stage | Title | Capital | Profit Target | Max Drawdown | Max Inventory | Key Mechanics |
-| :---: | :--- | :---: | :---: | :---: | :---: | :--- |
-| **1** | **Market Making 101** | $100,000 | +$6,000 | -$4,000 | $\pm$50 lots | Capturing spread edge, retail order fills |
-| **2** | **Inventory Skew & Toxic Flow** | $250,000 | +$12,000 | -$8,000 | $\pm$60 lots | Quote skewing, detecting and rejecting toxic flow |
-| **3** | **ETF Basket Arbitrage** | $500,000 | +$20,000 | -$12,000 | $\pm$80 lots | Creation/redemption arb between ETF and basket NAV |
-| **4** | **Macro Alpha & Fast Latency** | $750,000 | +$30,000 | -$16,000 | $\pm$100 lots | Real-time CPI, FOMC, and NFP surprise trading |
-| **5** | **Head of Quant Trading (Endless)** | $1,000,000 | +$50,000 | -$25,000 | $\pm$120 lots | Full desk scale with all active market catalysts |
+### 1. Quoting Spreads
+You continuously post prices around what you think fair value is:
+- **Bid**: where you buy (fair value minus half the spread)
+- **Ask**: where you sell (fair value plus half the spread)
+
+A tighter spread gets you more trades. A wider spread gives you more profit per fill, but other market participants might ignore your price.
+
+### 2. Managing Inventory (Skewing)
+If your inventory starts piling up, you have to lean your quotes to balance out.
+
+- **Sitting on a heavy long position?** Skew your quotes down. Lowering your ask attracts buyers, while lowering your bid discourages sellers.
+- **Short too many contracts?** Skew your quotes up. A higher bid brings in sellers so you can buy your position back.
+
+If you don't skew in time, market drift will trigger your stop loss.
+
+### 3. Toxic Flow and Adverse Selection
+Not all incoming trades are equal.
+- **Retail orders** are usually random noise. They buy and sell without much directional edge.
+- **Informed flow** comes from funds or algos with better information. When they hit your quotes, fair value usually moves hard against you immediately.
+
+Watch for toxic flow warnings and reject incoming orders when something looks off.
+
+### 4. ETF Arbitrage (Stage 3+)
+An ETF is backed by a basket of underlying stocks. Usually their prices match, but sometimes they drift apart:
+- **ETF trades higher than the basket NAV**: sell the ETF and buy the basket.
+- **ETF trades lower than the basket NAV**: buy the ETF and short the basket.
+
+You can lock in the difference through creation and redemption.
+
+### 5. Macro Data Releases (Stage 4+)
+Economic prints like CPI inflation, unemployment numbers, and interest rate decisions shake the market.
+
+What matters isn't just the number—it's how far it lands from consensus expectations. If inflation comes in cooler than expected, tech equities usually rip upward. You have a few seconds to trade the surprise before the rest of the book catches up.
 
 ---
 
-## ⌨️ Trading Floor Keyboard Hotkeys
+## Prop Firm Stages
 
-| Key | Action | Description |
-| :---: | :--- | :--- |
-| **`1`** | **Tight Spread** | Quote tight spread ($0.30) to maximize order flow volume |
-| **`2`** | **Medium Spread** | Quote balanced spread ($0.50) for standard market conditions |
-| **`3`** | **Wide Spread** | Quote defensive wide spread ($0.90) to protect against volatility |
-| **`D`** | **Skew Down** | Lower quotes by $0.20 to offload long inventory to buyers |
-| **`N`** | **Neutral Skew** | Center quotes symmetrically around estimated Fair Value |
-| **`U`** | **Skew Up** | Raise quotes by $0.20 to attract sellers and cover short inventory |
-| **`F`** or **`Space`** | **Flatten Position** | Liquidate current inventory at market |
-| **`B`** | **Buy Macro Alpha** | Execute instant long trade on bullish economic surprises |
-| **`S`** | **Sell Macro Alpha** | Execute instant short trade on bearish economic surprises |
+To pass each stage, you need to hit a profit target without breaking your daily or maximum drawdown limits:
+
+| Stage | Name | Starting Capital | Target | Max Loss | Max Inventory | Features |
+|:---:|:---|:---:|:---:|:---:|:---:|:---|
+| **1** | Market Making Basics | $100,000 | +$6,000 | -$4,000 | 50 contracts | Spread quoting and retail flow |
+| **2** | Inventory & Toxic Flow | $250,000 | +$12,000 | -$8,000 | 60 contracts | Skewing quotes and dodging toxic orders |
+| **3** | ETF Basket Arbitrage | $500,000 | +$20,000 | -$12,000 | 80 contracts | Mispricing between ETF and underlying NAV |
+| **4** | Macroeconomic Alpha | $750,000 | +$30,000 | -$16,000 | 100 contracts | Trading CPI, FOMC, and NFP prints |
+| **5** | Head of Desk | $1,000,000 | +$50,000 | -$25,000 | 120 contracts | Endless mode with all desks active |
+
+Between trading days, you'll also run into quick mental math interview questions to sharpen your speed.
 
 ---
 
-## 🛠️ Architecture & Tech Stack
+## Keyboard Controls
+
+You can click the buttons on screen, or use the keyboard:
+
+| Key | What it does |
+|:---:|:---|
+| `1` | Tight spread ($0.30) |
+| `2` | Normal spread ($0.50) |
+| `3` | Wide spread ($0.90) |
+| `D` | Skew quotes down |
+| `N` | Reset to neutral skew |
+| `U` | Skew quotes up |
+| `F` or `Space` | Flatten position immediately at market |
+| `B` | Buy on positive macro surprise |
+| `S` | Sell on negative macro surprise |
+
+---
+
+## Project Structure
 
 ```
 prop-desk/
 ├── src/
 │   ├── components/
-│   │   ├── Header.tsx              # Account balance, daily P&L, drawdown bar, clock
-│   │   ├── MarketMakerDesk.tsx     # Two-sided quoting, tick chart, inventory meter, order stream
-│   │   ├── ArbitrageDesk.tsx       # Live ETF vs Basket NAV discrepancy & creation/redemption
-│   │   ├── MacroAlphaPanel.tsx     # Economic print surprise deltas & latency trading
-│   │   ├── MorningBriefingModal.tsx# Stage objectives, risk parameters, and learning goals
-│   │   ├── DayResultsModal.tsx     # Shift performance review, P&L attribution, promotion
-│   │   ├── MentalMathModal.tsx     # 10-second quant interview math & probability EV rounds
-│   │   ├── TradingGuideModal.tsx   # Comprehensive field manual with formulas and rules
-│   │   └── LeaderboardModal.tsx    # Persistent career records & global desk benchmarks
+│   │   ├── Header.tsx              # Account stats, day clock, daily P&L bar
+│   │   ├── MarketMakerDesk.tsx     # Order book, tick chart, spread and skew controls
+│   │   ├── ArbitrageDesk.tsx       # ETF vs basket NAV creation/redemption panel
+│   │   ├── MacroAlphaPanel.tsx     # Economic calendar and surprise trade buttons
+│   │   ├── MorningBriefingModal.tsx# Stage goals and rules before the day starts
+│   │   ├── DayResultsModal.tsx     # Daily recap, stats breakdown, next stage
+│   │   ├── MentalMathModal.tsx     # Fast math drills between shifts
+│   │   ├── TradingGuideModal.tsx   # Detailed in-game manual and explanations
+│   │   └── LeaderboardModal.tsx    # Saved personal high scores
 │   ├── services/
-│   │   ├── scenarioData.ts         # Stage configurations, asset books, and mental math pool
-│   │   ├── newsData.ts             # Macro economic release database & surprise generator
-│   │   └── soundEffects.ts         # Procedural Web Audio API sound synthesizer
+│   │   ├── scenarioData.ts         # Stage settings and math questions
+│   │   ├── newsData.ts             # Economic reports database
+│   │   └── soundEffects.ts         # In-browser audio synthesis (no mp3 files needed)
 │   ├── types/
-│   │   └── desk.ts                 # TypeScript interfaces for market making & prop challenges
-│   ├── App.tsx                     # Core simulation engine, tick loop, and hotkey listeners
-│   └── main.tsx                    # React 19 entry point
-├── index.html                      # HTML5 entry with metadata
-├── package.json                    # Project scripts and dependencies
-├── tsconfig.json                   # TypeScript configuration
-└── vite.config.ts                  # Vite build configuration
+│   │   └── desk.ts                 # TypeScript types
+│   ├── App.tsx                     # Main game loop and keyboard listener
+│   └── main.tsx                    # Entry point
+├── index.html
+├── package.json
+├── tsconfig.json
+└── vite.config.ts
 ```
 
-### Key Technologies
-- **React 19**: Modern functional architecture, hooks, and responsive rendering.
-- **TypeScript 5.x**: Full type safety across market books, order queues, and risk matrix calculations.
-- **Tailwind CSS v4**: Utility-first styling implementing a Swiss-modern brutalist financial interface.
-- **Procedural Web Audio API**: Custom procedural audio synthesizer generating tactile acoustic feedback (terminal clicks, trade fills, alert alarms, cash settlements) without external audio assets.
-- **Vite 8**: High-performance local bundling and instant hot module reloading.
+Built with React 19, TypeScript, Tailwind CSS, and Vite. Sound effects use the browser's built-in Web Audio API, so there are no external audio assets to download.
 
 ---
 
-## 🚀 Getting Started
+## Running Locally
 
-### Prerequisites
-- [Node.js](https://nodejs.org/) (version 18.0.0 or higher recommended)
-- `npm`, `yarn`, or `pnpm`
+Make sure you have Node.js (v18+) installed.
 
-### Installation
-1. Clone the repository:
+1. Clone this repository:
    ```bash
    git clone https://github.com/your-username/prop-desk.git
    cd prop-desk
@@ -143,32 +138,20 @@ prop-desk/
    npm install
    ```
 
-3. Launch the development server:
+3. Start the dev server:
    ```bash
    npm run dev
    ```
 
-4. Open your browser and navigate to:
-   ```
-   http://localhost:3000
-   ```
+4. Open your browser at `http://localhost:3000`.
 
-### Production Build & Typecheck
-- **Validate TypeScript**:
-  ```bash
-  npm run lint
-  ```
-- **Build optimized bundle**:
-  ```bash
-  npm run build
-  ```
-- **Preview production build**:
-  ```bash
-  npm run preview
-  ```
+To build for production:
+```bash
+npm run build
+```
 
 ---
 
-## 📄 License
+## License
 
-This project is licensed under the [MIT License](LICENSE).
+MIT

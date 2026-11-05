@@ -1,7 +1,7 @@
 {
   "name": "prop-desk-simulator",
   "version": "1.0.0",
-  "description": "Quantitative Proprietary Trading & Market Making Terminal Simulator inspired by Jane Street & Optiver trading desks",
+  "description": "A browser-based market making and prop trading game inspired by Crude Desk",
   "license": "MIT",
   "type": "module",
   "scripts": {

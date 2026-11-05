@@ -20,7 +20,7 @@ export const TradingGuideModal: React.FC<TradingGuideModalProps> = ({ isOpen, on
           <div className="flex items-center gap-2">
             <BookOpen className="h-5 w-5 text-[#4A8ECB]" />
             <h2 className="text-sm font-black uppercase tracking-wider">
-              QUANT PROPRIETARY TRADING &amp; MARKET MAKING MANUAL
+              TRADING DESK MANUAL &amp; GUIDE
             </h2>
           </div>
           <button
@@ -68,10 +68,10 @@ export const TradingGuideModal: React.FC<TradingGuideModalProps> = ({ isOpen, on
             <div className="space-y-3">
               <div className="border-2 border-neutral-900 bg-neutral-50 p-4">
                 <h3 className="text-sm font-black uppercase text-[#111111] mb-2">
-                  THE ESSENCE OF QUANTITATIVE MARKET MAKING
+                  HOW MARKET MAKING WORKS
                 </h3>
                 <p>
-                  Proprietary trading firms (Jane Street, Optiver, Citadel Securities, IMC) do not speculate on whether an asset goes up or down. Instead, they provide liquidity by quoting a two-sided price:
+                  Market makers don't bet on whether an asset goes up or down. Instead, they provide liquidity by quoting prices on both sides at once:
                 </p>
                 <div className="grid grid-cols-2 gap-3 my-3 font-mono">
                   <div className="border-2 border-emerald-900 bg-emerald-50 p-3">
@@ -157,7 +157,7 @@ export const TradingGuideModal: React.FC<TradingGuideModalProps> = ({ isOpen, on
                   ETF BASKET CREATION &amp; REDEMPTION ARBITRAGE
                 </h3>
                 <p>
-                  An Exchange Traded Fund (ETF) represents a basket of underlying stocks. Jane Street is the world's largest ETF market maker because of creation-redemption arbitrage:
+                  An ETF holds a basket of underlying stocks. Arbitrage keeps the ETF price in sync with the value of that basket:
                 </p>
                 <ul className="list-disc list-inside space-y-1.5 mt-2 font-mono text-[11px]">
                   <li>
