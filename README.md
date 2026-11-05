@@ -1,6 +1,6 @@
 # Prop Desk
 
-A browser-based market making and prop trading game inspired by Crude Desk.
+A browser-based market making and prop trading game inspired by The Crude Desk Game.
 
 Instead of oil shipments and tankers, this focuses on how electronic market makers and prop trading desks actually make money: quoting two-sided prices, managing inventory risk, avoiding toxic flow, and reacting to market-moving news.
 
