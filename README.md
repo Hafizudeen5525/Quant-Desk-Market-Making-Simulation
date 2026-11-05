@@ -129,7 +129,7 @@ Make sure you have Node.js (v18+) installed.
 
 1. Clone this repository:
    ```bash
-   git clone https://github.com/your-username/prop-desk.git
+   git clone https://github.com/Hafizudeen5525/Quant-Desk-Market-Making-Simulation.git
    cd prop-desk
    ```
 
